@@ -72,3 +72,36 @@
     font-family: var(--font-sans);
   }
 }
+
+/* ── Added for the landing redesign ───────────────────────────────────────── */
+
+@theme {
+  /* The Label is paper in BOTH themes. DESIGN.md §3 calls it the one object a
+     shop displays with pride — a certificate, not chrome. Letting it invert
+     with the rest of the page turned it into a grey rectangle eight points of
+     lightness from the ground, which is the metaphor collapsing. These tokens
+     deliberately have no dark override. */
+  --color-label-paper: #FFFFFF;
+  --color-label-ink:   #16191D;
+  --color-label-muted: #5A6068;
+  --color-label-faint: #8C939C;
+  --color-label-rule:  #E4E0D8;
+
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Deeper ground, wider gaps between the steps. The old pair sat 8 points
+       apart and everything flattened into one plane. */
+    --color-paper:  #0F1215;
+    --color-card:   #171C21;
+    --color-rule:   #252D34;
+  }
+}
+
+@utility keep-all {
+  /* Korean breaks anywhere without this — the hero was splitting 90초 across
+     two lines. Latin is unaffected. */
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}

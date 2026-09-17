@@ -11,8 +11,10 @@ import { HEADING } from "@/lib/generate";
  */
 export default function Label({ lines = [], shopName, shopPlaceholder = "", animate = false }) {
   return (
-    <section className="w-full max-w-[640px] rounded-card border border-rule bg-card p-8 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
-      <h2 className="font-display text-[20px] leading-snug font-semibold text-ink">{HEADING}</h2>
+    <section className="w-full max-w-[640px] rounded-card border border-label-rule bg-label-paper p-8 shadow-[0_1px_3px_rgba(22,25,29,0.06)] dark:shadow-[0_24px_60px_rgba(0,0,0,0.55)]">
+      <h2 className="font-display text-[20px] leading-snug font-semibold text-label-ink">
+        {HEADING}
+      </h2>
       <div className="mt-2 h-[3px] w-11 bg-seal" aria-hidden="true" />
 
       <div className="mt-6">
@@ -21,10 +23,10 @@ export default function Label({ lines = [], shopName, shopPlaceholder = "", anim
             key={`${index}-${line.text}`}
             className={
               line.dim
-                ? "mb-3 text-[16px] leading-[1.9] text-ink-faint opacity-70"
+                ? "mb-3 text-[16px] leading-[1.9] text-label-faint opacity-80"
                 : animate
-                  ? "mb-3 animate-line-in text-[16px] leading-[1.9] text-ink motion-reduce:animate-none"
-                  : "mb-3 text-[16px] leading-[1.9] text-ink"
+                  ? "mb-3 animate-line-in text-[16px] leading-[1.9] text-label-ink motion-reduce:animate-none"
+                  : "mb-3 text-[16px] leading-[1.9] text-label-ink"
             }
           >
             {line.text}
@@ -32,7 +34,7 @@ export default function Label({ lines = [], shopName, shopPlaceholder = "", anim
         ))}
       </div>
 
-      <p className="mt-8 text-[12px] text-ink-faint">
+      <p className="mt-8 text-[12px] text-label-faint">
         {shopName?.trim() || shopPlaceholder} · TrustLabel로 생성
       </p>
     </section>
