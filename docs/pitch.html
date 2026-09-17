@@ -276,6 +276,65 @@
 
   a { color: var(--seal); }
   :focus-visible { outline: 2px solid var(--seal); outline-offset: 3px; }
+
+  /* ── Print / PDF ──────────────────────────────────────────────────────────
+     On screen this is a scroll-snapped deck of 100dvh slides inside a
+     scrolling container. None of that survives printing: the container clips
+     to one screen and dvh has no meaning on paper. So for print the deck
+     becomes a plain block and each slide becomes exactly one 16:9 page.
+     The type scale is fixed too — clamp() resolves against the viewport,
+     which is not the page box. */
+  @page {
+    size: 13.333in 7.5in;   /* 16:9, the same box a slide deck exports to */
+    margin: 0;
+  }
+
+  @media print {
+    :root {
+      --step-0: 11pt;
+      --step-1: 13pt;
+      --step-2: 20pt;
+      --step-3: 30pt;
+      --step-4: 44pt;
+    }
+
+    html, body {
+      background: var(--ground);
+      /* Without this the dark ground and the seal green print as white. */
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .deck {
+      height: auto;
+      overflow: visible;
+      display: block;
+      scroll-snap-type: none;
+    }
+
+    .slide {
+      min-height: 0;
+      height: 7.5in;
+      width: 13.333in;
+      padding: 0.7in 0.9in;
+      border-bottom: 0;
+      overflow: hidden;
+      break-after: page;
+      page-break-after: always;
+      break-inside: avoid;
+    }
+    .slide:last-child { break-after: auto; page-break-after: auto; }
+    .slide > * { max-width: 11.5in; }
+
+    /* Chrome evaluates min-width against the page box differently from the
+       viewport, so the two-column split does not survive on its own. On a 16:9
+       page there is plenty of width for it — state it outright. */
+    .split { grid-template-columns: 1fr 1fr; }
+    .ledger { grid-template-columns: 1fr 1fr; }
+
+    /* The progress bar is a screen affordance; on paper it is furniture. */
+    .chrome { display: none; }
+  }
 </style>
 
 <div class="deck" id="deck" tabindex="0">
@@ -288,6 +347,7 @@
     </div>
     <h1>Your reviews policy,<br>published in 90 seconds.</h1>
     <p class="lede">Every online seller in Korea has to disclose how they handle customer reviews. Most have no idea, and the deadline is fixed.</p>
+    <p class="faint">Built today. Live now at <b>trustlabel.store</b>.</p>
     <div class="stats" style="margin-top:1rem">
       <div class="stat">
         <span class="figure time" id="days">—</span>
@@ -340,9 +400,9 @@
   <section class="slide">
     <p class="eyebrow">Then one line</p>
     <h2>Paste this anywhere. It appears.</h2>
-    <pre><span class="tag">&lt;script</span> <span class="attr">src</span>="https://trustlabel.store/api/embed/abc123" <span class="attr">async</span><span class="tag">&gt;&lt;/script&gt;</span></pre>
-    <p class="muted">Served cross-origin with <code style="font-family:'IBM Plex Mono',monospace">stale-while-revalidate</code>, so a CDN keeps showing the last good copy even if we go down. Every failure path returns valid JavaScript — our outage must never break a seller's page.</p>
-    <p class="faint">Cafe24 and Imweb support this. Naver Smart Store blocks external scripts outright, so those sellers get the copy-paste block instead — knowing which is which is half the product.</p>
+    <pre><span class="tag">&lt;script</span> <span class="attr">src</span>="https://trustlabel.store/api/embed/c9dykuvf" <span class="attr">async</span><span class="tag">&gt;&lt;/script&gt;</span></pre>
+    <p class="muted">Served cross-origin with <code style="font-family:'IBM Plex Mono',monospace">stale-while-revalidate</code>, so a CDN keeps showing the last good copy even if we go down. <strong>Every failure path returns valid JavaScript</strong> — a 404 that returned HTML would throw a syntax error inside someone else's page. Both paths are checked with a parser, not by eye.</p>
+    <p class="faint">That URL goes into a stranger's production HTML and stays there for years. So editing a disclosure never reissues its slug, and the text is frozen at save — a later change to our generator cannot rewrite something a seller already published.</p>
   </section>
 
   <!-- 5 ─────────────────────────────────────────────────────────────────── -->
@@ -355,6 +415,7 @@
       <li><strong>Not found</strong><span>We read your page and it is not there.</span></li>
       <li><strong>Could not check</strong><span>We could not reach the page. That is our problem, not yours — and collapsing it into “not found” would be a false accusation.</span></li>
     </ol>
+    <p class="faint">Private addresses are refused rather than fetched. An endpoint that will retrieve any URL you hand it is a proxy into our own network, not a feature.</p>
   </section>
 
   <!-- 6 ─────────────────────────────────────────────────────────────────── -->
@@ -371,6 +432,7 @@
           <li>One-line embed for any site</li>
           <li>Install checker</li>
           <li>Magic-link accounts, per-row RLS</li>
+          <li>Public landing page and waitlist</li>
         </ul>
       </div>
       <div>
@@ -389,13 +451,24 @@
 
   <!-- 7 ─────────────────────────────────────────────────────────────────── -->
   <section class="slide">
+    <p class="eyebrow">Under the hood</p>
+    <h2>Three questions, three real answers.</h2>
+    <ol class="steps" style="margin-top:0.5rem">
+      <li><strong>“A seller types &lt;/script&gt; into a field. What happens?”</strong><span>Nothing. The embed serialises its data with <code style="font-family:'IBM Plex Mono',monospace">JSON.stringify</code> and builds the DOM with <code style="font-family:'IBM Plex Mono',monospace">textContent</code> — never <code style="font-family:'IBM Plex Mono',monospace">innerHTML</code>. We pushed that exact payload through and executed it: it renders as visible text.</span></li>
+      <li><strong>“Your checker fetches any URL. Is that an open proxy?”</strong><span>No. Hostnames are screened, then whatever they resolve to is screened again, and both run on every redirect hop. Thirty-four refusal cases, including the cloud metadata address at 169.254.169.254.</span></li>
+      <li><strong>“Where do you keep the service key?”</strong><span>We don't have one. The row-level policies are written so the public page and the embed work with the anonymous key alone. A secret we never created cannot leak on stage.</span></li>
+    </ol>
+  </section>
+
+  <!-- 8 ─────────────────────────────────────────────────────────────────── -->
+  <section class="slide">
     <p class="eyebrow">The honest part</p>
     <h2>This generates a draft, not legal advice.</h2>
     <p class="muted">The wording is written against the regulator's published summary, and no lawyer has reviewed it. That line ships on the public page and in the footer — not buried, not in grey 10px.</p>
     <p class="muted">A compliance product that overstates what it guarantees is the one thing worse than no compliance product. The next real step is not a feature. It is template certification by a Korean e-commerce firm, marketed as <span style="font-family:'Noto Sans KR',sans-serif">문구 검수</span>.</p>
   </section>
 
-  <!-- 8 ─────────────────────────────────────────────────────────────────── -->
+  <!-- 9 ─────────────────────────────────────────────────────────────────── -->
   <section class="slide">
     <p class="eyebrow">Close</p>
     <h2>Ninety seconds, no lawyer, no developer.</h2>
