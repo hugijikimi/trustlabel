@@ -6,25 +6,42 @@ day gets eaten.
 
 ---
 
-## Verified 2026-09-16
+## Verified 2026-09-17 — everything on this page is done
 
 Checked from a terminal, not from a dashboard. What actually answered:
 
 | Check | Result |
 |---|---|
 | `dig +short trustlabel.store` | `216.198.79.1` — Vercel ✅ |
-| `dig +short www.trustlabel.store` | Vercel CNAME + A records ✅ |
-| Nameservers | `launch1/2.spaceship.net` — registrar DNS, A/CNAME route ✅ |
-| `https://trustlabel.store` | **HTTP 200** — apex serves directly, no redirect ✅ |
-| `https://www.trustlabel.store` | **HTTP 200**, Next.js app serving ✅ |
-| Edge region | `icn1` (Seoul) — the right region ✅ |
+| `https://trustlabel.store` | **200** — apex serves directly, no redirect hop ✅ |
+| `https://www.trustlabel.store` | **308 → apex** — one canonical host, one cookie jar ✅ |
+| Edge region | `icn1` (Seoul) ✅ |
+| `disclosures`, `install_checks`, `waitlist` | all present, RLS enabled ✅ |
+| `anon` insert into `disclosures` | refused, `42501` ✅ |
+| `anon` select on `waitlist` | `[]` — the emails are not readable ✅ |
+| `anon` select on a published disclosure | returns the row — no service key needed ✅ |
+| Magic link | sent, arrived, opened, landed on `/dashboard` ✅ |
+| `/`, `/login`, `/d/<slug>`, `/api/embed/<slug>` in production | all 200 ✅ |
 
-**Everything marked DONE below is genuinely done.** DNS, TLS and the deployment
-all answer correctly, and the apex now serves without a redirect hop — so the
-embed URL resolves in one round trip. One small tidy-up remains in 3b.2.
+**The app itself is built and deployed.** All twelve briefs in
+[SPEC.md](SPEC.md) are done: magic-link auth, the generator, the wizard with
+its live preview, save/publish, the dashboard, the public page, QR and link
+preview, the embed, the install checker, and the landing page with its
+waitlist.
 
-Nothing in section 2 step 2, or sections 4 and 5, can be finished before the
-build starts. Those NOT DONE flags are correct, not behind.
+### Two things this page cannot check for you
+
+**Supabase Site URL.** It should be `https://trustlabel.store`, with the
+redirect list keeping `https://trustlabel.store/**`, `https://*.vercel.app/**`
+and `http://localhost:3000/**`. Keep the Vercel wildcard even now that the
+domain works — if DNS misbehaves on the day, that hostname is the fallback and
+sign-in still has to work on it.
+
+**Port 3000 locally.** The redirect allow-list names `localhost:3000`
+specifically, so a dev server on another port gets its magic links rejected
+with an error the UI does not explain. `.claude/launch.json` pins it with
+`autoPort: false` so it fails loudly rather than quietly working somewhere
+links cannot reach.
 
 ---
 
@@ -44,18 +61,17 @@ git init && git add -A && git commit -m "Initial commit"
 gh repo create trustlabel --private --source=. --push Status: DONE (but using browser and github, no gh)
 ```
 
-**Install the Vercel React skill *in the trustlabel project*** — Status: NOT DONE
+**Install the Vercel React skill *in the trustlabel project*** — Status: DONE
 
 ```bash
 npx skills add https://github.com/vercel-labs/agent-skills --skill vercel-react-best-practices
 ```
 
-It is currently installed under `hugi-jikimi/.agents/`, which is the wrong
-project. Skills are per-directory, so run it again from inside `trustlabel` or
-the agent will not see it tomorrow. Takes twenty seconds; do it tonight.
+Done — `.claude/skills/` in this project now carries `vercel-react-best-practices`
+alongside `supabase` and `supabase-postgres-best-practices`.
 
-Add `.agents/` and `skills-lock.json` to `.gitignore` unless you want the skill
-vendored into the repo.
+`.agents/`, `.claude/` and `skills-lock.json` are all in `.gitignore` — the
+skills are not vendored, so a lock file for them would be noise.
 
 ---
 
@@ -66,7 +82,7 @@ vendored into the repo.
      there, and latency is visible on a projector.
    - Save the database password somewhere. You will not be shown it again.
 
-2. **SQL Editor → New query** → paste everything from [SPEC.md §2](SPEC.md) Status: NOT DONE - better to have it while project development starts
+2. **SQL Editor → New query** → paste everything from [SPEC.md §2](SPEC.md) Status: DONE
    (both tables, all five policies) → **Run**. Expect `Success. No rows returned`.
 
 3. **Authentication → Sign In / Providers** Status: DONE
@@ -132,7 +148,7 @@ thing that will not respond to you trying harder in the morning.
    (`trustlabel.store`) as primary and let `www` redirect to it — the embed URL
    is going into other people's HTML, and the shorter one is the one you want
    living there for the next three years.
-   **Status: DONE — apex serves directly. One tidy-up left.**
+   **Status: DONE — apex serves directly, and `www` now redirects to it.**
 
    > **Verified:** `https://trustlabel.store` now returns `200` with no redirect,
    > so the embed URL costs one round trip instead of two. That was the part that
@@ -180,17 +196,20 @@ thing that will not respond to you trying harder in the morning.
 magic link, confirm it lands on `/dashboard`. If that works this evening, the two
 riskiest parts of tomorrow — DNS and email — are both already behind you.
 
-**Status: NOT DONE — magic link untested, because there is no `/dashboard` yet.**
+**Status: DONE — a magic link was sent, arrived, opened, and landed on
+`/dashboard`.** Both of the risky outside dependencies, DNS and email, are
+behind you.
 
-DNS is behind you. Email is not, and it is the one dependency outside the room.
-Make it the **first thing you prove tomorrow**, not the last: as soon as the
-Supabase client files exist (section 4), send yourself a link and confirm it
-arrives. If it lands in spam or the redirect is rejected, you want to know at
-hour one with the whole day to route around it — not at hour seven.
+Two things worth remembering about that flow. The links are **PKCE**, so one
+must be opened in the same browser that asked for it — click it from a mail
+client that opens a different browser and it fails with a generic error. And
+Supabase's built-in mailer allows only **a couple of sends per hour** with a
+60-second cooldown per address, so test deliberately rather than by retrying.
+If delivery ever goes bad, the route around it is custom SMTP.
 
 ---
 
-## 4. Supabase client files Status: NOT DONE - better to have it while project development starts
+## 4. Supabase client files Status: DONE
 
 Three small files. Write them once and forget them.
 
@@ -255,7 +274,7 @@ await supabase.auth.signInWithOtp({
 
 ---
 
-## 5. Seed a demo row (do this tonight too) Status: NOT DONE - better to have it while project development starts
+## 5. Seed a demo row (do this tonight too) Status: DONE — a published row exists, made through the wizard rather than by hand
 
 After signing in once, find your user id in **Authentication → Users**, then:
 
