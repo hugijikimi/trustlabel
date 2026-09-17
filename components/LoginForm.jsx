@@ -2,21 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
+import { useLang } from "@/lib/useLang";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const RESEND_COOLDOWN = 60;
 
-function describe(error) {
-  if (error.status === 429) {
-    return "Too many sign-in emails too quickly. The built-in mailer only allows a couple per hour — wait a minute, then try again.";
-  }
-  return error.message || "We couldn't send the link. Check the address and try again.";
-}
-
-export default function LoginForm({ initialError = "" }) {
+export default function LoginForm({ linkFailed = false }) {
+  const { t } = useLang();
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState(initialError ? "error" : "idle"); // idle | sending | sent | error
-  const [message, setMessage] = useState(initialError);
+  const [status, setStatus] = useState(linkFailed ? "error" : "idle"); // idle | sending | sent | error
+  // A key rather than a sentence, so the message follows the language toggle.
+  const [errorKey, setErrorKey] = useState(linkFailed ? "login_link_failed" : null);
   const [cooldown, setCooldown] = useState(0);
 
   useEffect(() => {
@@ -31,14 +27,12 @@ export default function LoginForm({ initialError = "" }) {
 
     if (!EMAIL_RE.test(address)) {
       setStatus("error");
-      setMessage(
-        "That doesn't look like an email address — check for a missing @ or a typo in the domain."
-      );
+      setErrorKey("login_invalid");
       return;
     }
 
     setStatus("sending");
-    setMessage("");
+    setErrorKey(null);
 
     const { error } = await supabase.auth.signInWithOtp({
       email: address,
@@ -47,7 +41,7 @@ export default function LoginForm({ initialError = "" }) {
 
     if (error) {
       setStatus("error");
-      setMessage(describe(error));
+      setErrorKey(error.status === 429 ? "login_rate" : "login_error");
       return;
     }
 
@@ -58,25 +52,25 @@ export default function LoginForm({ initialError = "" }) {
   if (status === "sent") {
     return (
       <>
-        <h1 className="text-2xl font-semibold">Check your email</h1>
-        <p className="mt-3 text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
-          We sent a sign-in link to{" "}
-          <span className="font-medium text-neutral-900 dark:text-neutral-100">{email.trim()}</span>.
-          Open it in this browser — the link will not work anywhere else.
+        <h1 className="font-display text-[28px] leading-tight font-semibold text-ink keep-all">
+          {t("login_sent_title")}
+        </h1>
+        <p className="mt-3 text-[15px] leading-relaxed text-ink-muted keep-all">
+          {t("login_sent_body", { email: email.trim() })}
         </p>
         <button
           type="button"
           onClick={() => {
             setStatus("idle");
-            setMessage("");
+            setErrorKey(null);
           }}
           disabled={cooldown > 0}
-          className="mt-8 w-full rounded-lg border-[1.5px] border-neutral-300 px-5 py-3 text-sm disabled:opacity-50 dark:border-neutral-700"
+          className="mt-8 min-h-[48px] w-full rounded-lg border-[1.5px] border-rule-strong bg-card px-5 text-sm text-ink disabled:opacity-50"
         >
-          {cooldown > 0 ? `Send another link in ${cooldown}s` : "Send another link"}
+          {cooldown > 0 ? t("login_resend_in", { n: cooldown }) : t("login_resend")}
         </button>
-        <p className="mt-3 text-xs leading-relaxed text-neutral-500">
-          Nothing after a minute? Check spam before sending again — the mailer allows only a couple of sends per hour.
+        <p className="mt-3 text-[12px] leading-relaxed text-ink-muted keep-all">
+          {t("login_spam")}
         </p>
       </>
     );
@@ -86,20 +80,21 @@ export default function LoginForm({ initialError = "" }) {
 
   return (
     <>
-      <h1 className="text-2xl font-semibold">Sign in to TrustLabel</h1>
-      <p className="mt-3 text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
-        Enter your email and we&apos;ll send you a sign-in link. No password.
-      </p>
+      <h1 className="font-display text-[28px] leading-tight font-semibold text-ink keep-all">
+        {t("login_title")}
+      </h1>
+      <p className="mt-3 text-[15px] leading-relaxed text-ink-muted keep-all">{t("login_sub")}</p>
 
       <form onSubmit={handleSubmit} className="mt-8" noValidate>
-        <label htmlFor="email" className="block text-sm font-medium">
-          Email
+        <label htmlFor="email" className="block text-[15px] font-medium text-ink">
+          {t("login_email")}
         </label>
         <input
           id="email"
           name="email"
           type="email"
           autoComplete="email"
+          inputMode="email"
           autoFocus
           required
           value={email}
@@ -107,22 +102,26 @@ export default function LoginForm({ initialError = "" }) {
           disabled={sending}
           aria-invalid={status === "error"}
           aria-describedby={status === "error" ? "login-error" : undefined}
-          placeholder="you@example.com"
-          className="mt-2 w-full rounded-lg border border-neutral-300 bg-white px-4 py-3 text-base outline-none focus:border-neutral-900 disabled:opacity-60 dark:border-neutral-700 dark:bg-neutral-900 dark:focus:border-neutral-100"
+          placeholder={t("login_email_placeholder")}
+          className="mt-2 w-full rounded-lg border border-rule bg-card px-4 py-3 text-base text-ink outline-none focus:border-ink disabled:opacity-60"
         />
 
-        {status === "error" ? (
-          <p id="login-error" role="alert" className="mt-3 text-sm leading-relaxed text-red-700 dark:text-red-400">
-            {message}
+        {status === "error" && errorKey ? (
+          <p
+            id="login-error"
+            role="alert"
+            className="mt-3 text-[13px] leading-relaxed text-brick keep-all"
+          >
+            {t(errorKey)}
           </p>
         ) : null}
 
         <button
           type="submit"
           disabled={sending}
-          className="mt-6 w-full rounded-lg bg-neutral-900 px-5 py-3 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50 dark:bg-neutral-100 dark:text-neutral-900"
+          className="mt-6 min-h-[48px] w-full rounded-lg bg-ink px-5 text-[15px] font-medium text-paper hover:opacity-90 disabled:opacity-50"
         >
-          {sending ? "Sending…" : "Send me a link"}
+          {sending ? t("login_sending") : t("login_send")}
         </button>
       </form>
     </>
