@@ -29,6 +29,10 @@ function DisclosureCard({ row, origin, t }) {
   const [confirming, setConfirming] = useState(false);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
+  const [checkOpen, setCheckOpen] = useState(false);
+  const [checkUrl, setCheckUrl] = useState("");
+  const [checking, setChecking] = useState(false);
+  const [check, setCheck] = useState(null);
 
   const url = `${origin}/d/${row.slug}`;
 
@@ -46,6 +50,23 @@ function DisclosureCard({ row, origin, t }) {
     router.refresh();
     setBusy(false);
     setConfirming(false);
+  }
+
+  async function handleCheck(event) {
+    event.preventDefault();
+    setChecking(true);
+    setCheck(null);
+    try {
+      const response = await fetch("/api/check", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ disclosureId: row.id, url: checkUrl.trim() }),
+      });
+      setCheck(await response.json());
+    } catch {
+      setCheck({ outcome: "unchecked", reason: "network" });
+    }
+    setChecking(false);
   }
 
   async function handleCopy() {
@@ -110,6 +131,14 @@ function DisclosureCard({ row, origin, t }) {
           {busy ? t("card_working") : row.published ? t("card_unpublish") : t("card_publish")}
         </button>
 
+        <button
+          type="button"
+          onClick={() => setCheckOpen((open) => !open)}
+          className="rounded-lg border-[1.5px] border-rule-strong bg-card px-4 py-2 text-[13px] text-ink"
+        >
+          {t("card_check")}
+        </button>
+
         {confirming ? (
           <span className="flex flex-wrap items-center gap-2">
             <span className="text-[13px] text-ink-muted">{t("card_delete_ask")}</span>
@@ -141,7 +170,61 @@ function DisclosureCard({ row, origin, t }) {
           </button>
         )}
       </div>
+
+      {checkOpen ? (
+        <form onSubmit={handleCheck} className="mt-4 border-t border-rule pt-4">
+          <p className="text-[13px] font-medium text-ink">{t("check_title")}</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <input
+              type="url"
+              value={checkUrl}
+              onChange={(event) => setCheckUrl(event.target.value)}
+              placeholder={t("check_url_placeholder")}
+              disabled={checking}
+              className="min-w-0 flex-1 rounded-lg border border-rule bg-paper px-3 py-2 text-base text-ink outline-none focus:border-ink disabled:opacity-60"
+            />
+            <button
+              type="submit"
+              disabled={checking || !checkUrl.trim()}
+              className="rounded-lg bg-ink px-4 py-2 text-[13px] font-medium text-paper disabled:opacity-40"
+            >
+              {checking ? t("check_running") : t("check_run")}
+            </button>
+          </div>
+
+          {check ? <CheckResult result={check} t={t} /> : null}
+        </form>
+      ) : null}
     </div>
+  );
+}
+
+/**
+ * Three outcomes, never two. "We could not reach your page" is not "your
+ * disclosure is missing", and one of those is an accusation.
+ */
+function CheckResult({ result, t }) {
+  if (result.outcome === "found") {
+    return (
+      <p className="mt-3 rounded-lg bg-seal-tint px-3 py-2 text-[13px] leading-relaxed text-seal">
+        {t("check_found")}
+      </p>
+    );
+  }
+
+  if (result.outcome === "not_found") {
+    return (
+      <p className="mt-3 rounded-lg bg-amber-tint px-3 py-2 text-[13px] leading-relaxed text-amber">
+        {t("check_not_found")}
+      </p>
+    );
+  }
+
+  const reason = result.reason ? t(`check_reason_${result.reason}`, { status: result.httpStatus }) : "";
+  return (
+    <p className="mt-3 rounded-lg border border-rule bg-paper px-3 py-2 text-[13px] leading-relaxed text-ink-muted">
+      {t("check_unchecked")} {reason}
+    </p>
   );
 }
 
