@@ -1,0 +1,484 @@
+<title>TrustLabel</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Sans+KR:wght@400;500&display=swap">
+<style>
+  /*
+    Deliberately single-theme. This is a deck shown in a dim room on a projector,
+    so it commits to a dark field — and the one bright object on every slide is
+    the disclosure label itself, which is exactly the product's argument.
+    Every colour is painted explicitly so the page holds on any host ground.
+  */
+  :root {
+    --ground: #0E1512;
+    --ground-2: #141D19;
+    --surface: #1A2520;
+    --ink: #E8F0EA;
+    --ink-muted: #93A89B;
+    --ink-faint: #61756A;
+    --rule: #22302A;
+    --seal: #3DBB92;
+    --seal-dim: #1F6B53;
+    --amber: #E8A33D;
+    --brick: #E07264;
+    --label-paper: #FFFFFF;
+    --label-ink: #16191D;
+    --label-rule: #E4E0D8;
+
+    /* Every stack ends in Noto Sans KR: the display and mono faces carry
+       neither Hangul nor ₩, and a stack without it falls back mid-string. */
+    --font-display: "Bricolage Grotesque", "IBM Plex Sans", "Noto Sans KR", sans-serif;
+    --font-sans: "IBM Plex Sans", "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", "Noto Sans KR", ui-monospace, monospace;
+
+    --step-0: clamp(0.82rem, 0.9vw + 0.5rem, 0.95rem);
+    --step-1: clamp(1rem, 1.1vw + 0.6rem, 1.2rem);
+    --step-2: clamp(1.3rem, 1.8vw + 0.6rem, 1.75rem);
+    --step-3: clamp(1.9rem, 3.4vw + 0.5rem, 3rem);
+    --step-4: clamp(2.6rem, 6vw + 0.4rem, 5rem);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .deck {
+    height: 100dvh;
+    overflow-y: auto;
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .deck { scroll-behavior: auto; }
+  }
+
+  .slide {
+    scroll-snap-align: start;
+    min-height: 100dvh;
+    display: grid;
+    align-content: center;
+    padding: clamp(2rem, 5vw, 5rem) clamp(1.5rem, 7vw, 7rem) clamp(4rem, 8vw, 6rem);
+    gap: clamp(1rem, 2vw, 1.75rem);
+    border-bottom: 1px solid var(--rule);
+  }
+  .slide > * { max-width: 62rem; }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: var(--step-0);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--seal);
+    margin: 0;
+  }
+
+  h1, h2 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    line-height: 1.04;
+    letter-spacing: -0.025em;
+    text-wrap: balance;
+    margin: 0;
+  }
+  h1 { font-size: var(--step-4); }
+  h2 { font-size: var(--step-3); }
+
+  .lede {
+    font-size: var(--step-2);
+    line-height: 1.45;
+    color: var(--ink-muted);
+    max-width: 34ch;
+    margin: 0;
+    text-wrap: balance;
+  }
+  p { font-size: var(--step-1); line-height: 1.65; margin: 0; max-width: 60ch; }
+  .muted { color: var(--ink-muted); }
+  .faint { color: var(--ink-faint); font-size: var(--step-0); }
+
+  .split {
+    display: grid;
+    gap: clamp(2rem, 5vw, 4rem);
+    align-items: center;
+    max-width: 78rem;
+  }
+  @media (min-width: 60rem) {
+    .split { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* ── the label: the only white object in the deck ──────────────────────── */
+  .label {
+    background: var(--label-paper);
+    color: var(--label-ink);
+    border-radius: 14px;
+    padding: clamp(1.5rem, 2.5vw, 2rem);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+    max-width: 38rem;
+  }
+  .label h3 {
+    font-family: "Noto Sans KR", sans-serif;
+    font-size: 1.05rem;
+    font-weight: 500;
+    margin: 0 0 0.35rem;
+  }
+  .label .rule { height: 3px; width: 44px; background: var(--seal-dim); margin-bottom: 1.1rem; }
+  .label p {
+    font-family: "Noto Sans KR", sans-serif;
+    font-size: 0.86rem;
+    line-height: 1.85;
+    margin: 0 0 0.6rem;
+    color: var(--label-ink);
+    max-width: none;
+  }
+  .label .foot {
+    margin-top: 1rem;
+    font-size: 0.7rem;
+    color: #8C939C;
+    border-top: 1px solid var(--label-rule);
+    padding-top: 0.75rem;
+  }
+
+  /* ── statute block ─────────────────────────────────────────────────────── */
+  .statute {
+    font-family: var(--font-mono);
+    font-size: var(--step-0);
+    color: var(--ink-muted);
+    border-left: 2px solid var(--seal-dim);
+    padding: 0.2rem 0 0.2rem 1rem;
+    line-height: 1.8;
+  }
+  .statute b { color: var(--ink); font-weight: 500; }
+
+  .figure {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: var(--step-4);
+    line-height: 1;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+  }
+  .figure.warn { color: var(--brick); }
+  .figure.time { color: var(--amber); }
+  /*
+    The Won sign gets its own face. Bricolage Grotesque has no ₩, so inside a
+    display-face string the browser substitutes one glyph from a fallback and it
+    crashes into the numerals at the wrong weight. Splitting it out also reads
+    better — currency marks conventionally sit smaller than the figure.
+  */
+  .figure .unit {
+    font-family: "Noto Sans KR", var(--font-sans);
+    font-weight: 500;
+    font-size: 0.66em;
+    margin-right: 0.06em;
+    vertical-align: 0.06em;
+  }
+
+  .stats { display: flex; flex-wrap: wrap; gap: clamp(2rem, 6vw, 5rem); }
+  .stat { display: grid; gap: 0.4rem; }
+  .stat .cap {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  /* ── steps: a real sequence, so numbered ───────────────────────────────── */
+  ol.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 1.1rem; counter-reset: s; }
+  ol.steps li {
+    counter-increment: s;
+    display: grid;
+    grid-template-columns: 2rem minmax(0, 1fr);
+    column-gap: 1rem;
+    row-gap: 0.1rem;
+    align-items: baseline;
+  }
+  ol.steps li::before {
+    content: counter(s, decimal-leading-zero);
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--seal);
+  }
+  /*
+    Both children are pinned to column 2. Without this the <span> is the third
+    grid item, wraps to a new implicit row, lands back in the 2rem counter
+    column, and Korean sets one character per line.
+  */
+  ol.steps li > strong { grid-column: 2; font-weight: 600; font-size: var(--step-1); }
+  ol.steps li > span {
+    grid-column: 2;
+    color: var(--ink-muted);
+    font-size: var(--step-0);
+    line-height: 1.7;
+    margin-top: 0.15rem;
+  }
+
+  /* ── code ──────────────────────────────────────────────────────────────── */
+  pre {
+    font-family: var(--font-mono);
+    background: var(--ground-2);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 1.1rem 1.25rem;
+    overflow-x: auto;
+    margin: 0;
+    font-size: clamp(0.76rem, 1.1vw, 0.95rem);
+    line-height: 1.7;
+    color: var(--ink);
+  }
+  pre .tag { color: var(--seal); }
+  pre .attr { color: var(--amber); }
+
+  /* ── two-column ledger: kept vs cut ────────────────────────────────────── */
+  .ledger { display: grid; gap: clamp(1.5rem, 4vw, 3rem); }
+  @media (min-width: 50rem) { .ledger { grid-template-columns: 1fr 1fr; } }
+  .ledger ul { list-style: none; margin: 0.75rem 0 0; padding: 0; display: grid; gap: 0.6rem; }
+  .ledger li { font-size: var(--step-0); line-height: 1.6; display: grid; grid-template-columns: 1.1rem 1fr; gap: 0.6rem; }
+  .ledger li::before { font-family: var(--font-mono); }
+  .kept li { color: var(--ink); }
+  .kept li::before { content: "+"; color: var(--seal); }
+  .cut li { color: var(--ink-muted); }
+  .cut li::before { content: "\2212"; color: var(--ink-faint); }
+  .col-head {
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  /* ── chrome ────────────────────────────────────────────────────────────── */
+  .chrome {
+    position: fixed;
+    inset: auto 0 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem clamp(1.5rem, 7vw, 7rem);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    color: var(--ink-faint);
+    background: linear-gradient(to top, var(--ground) 55%, rgba(14, 21, 18, 0));
+    pointer-events: none;
+  }
+  .ticks { display: flex; gap: 6px; }
+  .tick { width: 22px; height: 2px; background: var(--rule); border-radius: 2px; transition: background 180ms; }
+  .tick.on { background: var(--seal); }
+
+  .wordmark { display: flex; align-items: center; gap: 0.6rem; }
+  .seal-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--seal); }
+
+  a { color: var(--seal); }
+  :focus-visible { outline: 2px solid var(--seal); outline-offset: 3px; }
+</style>
+
+<div class="deck" id="deck" tabindex="0">
+
+  <!-- 1 ─────────────────────────────────────────────────────────────────── -->
+  <section class="slide">
+    <div class="wordmark">
+      <span class="seal-dot"></span>
+      <span class="eyebrow" style="color:var(--ink-muted)">TrustLabel</span>
+    </div>
+    <h1>Your reviews policy,<br>published in 90 seconds.</h1>
+    <p class="lede">Every online seller in Korea has to disclose how they handle customer reviews. Most have no idea, and the deadline is fixed.</p>
+    <div class="stats" style="margin-top:1rem">
+      <div class="stat">
+        <span class="figure time" id="days">—</span>
+        <span class="cap">days until enforcement</span>
+      </div>
+      <div class="stat">
+        <span class="figure warn"><span class="unit">₩</span>10,000,000</span>
+        <span class="cap">maximum penalty</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 ─────────────────────────────────────────────────────────────────── -->
+  <section class="slide">
+    <p class="eyebrow">The obligation</p>
+    <h2>Four things every seller must publish.</h2>
+    <div class="statute">
+      <b>전자상거래법 제21조의4</b><br>
+      시행 <b>2026-10-22</b> · 공정거래위원회
+    </div>
+    <ol class="steps" style="margin-top:0.5rem">
+      <li><strong>Who may write a review</strong><span>사용후기 작성 권한이 있는 자의 범위</span></li>
+      <li><strong>How long it stays up</strong><span>게시기간</span></li>
+      <li><strong>How reviews are ranked</strong><span>등급평가 기준 및 효과 — vague terms like “usefulness” are explicitly insufficient</span></li>
+      <li><strong>When they are removed, and how to object</strong><span>삭제 기준과 이의제기 절차 — hiding a review counts as deleting it</span></li>
+    </ol>
+  </section>
+
+  <!-- 3 ─────────────────────────────────────────────────────────────────── -->
+  <section class="slide">
+    <div class="split">
+      <div style="display:grid;gap:1.25rem">
+        <p class="eyebrow">The product</p>
+        <h2>Five questions in, a legal disclosure out.</h2>
+        <p class="muted">No lawyer. No developer. The seller answers in their own language — the disclosure is always generated in Korean, because that is who has to be able to read it.</p>
+      </div>
+      <div class="label">
+        <h3>사용후기 수집·처리 정보공개</h3>
+        <div class="rule"></div>
+        <p>1. 사용후기 작성 권한: 실제 구매(결제)가 확인된 고객에게 작성 권한이 있습니다.</p>
+        <p>2. 게시기간: 등록된 후기는 삭제 요청 전까지 영구히 게시됩니다.</p>
+        <p>3. 평가·순위 기준: 알고리즘이 다음 기준에 따라 후기의 노출 순서를 정합니다 — 후기의 구체성 및 분량, 사진·영상 첨부 여부.</p>
+        <p>4. 삭제 기준 및 이의제기: 운영정책을 위반한 경우 해당 후기를 삭제하거나 비공개 처리할 수 있으며, 작성자는 고객센터를 통해 이의를 제기할 수 있습니다.</p>
+        <div class="foot">해피몰 · TrustLabel로 생성 · 법률 자문이 아닙니다</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 ─────────────────────────────────────────────────────────────────── -->
+  <section class="slide">
+    <p class="eyebrow">Then one line</p>
+    <h2>Paste this anywhere. It appears.</h2>
+    <pre><span class="tag">&lt;script</span> <span class="attr">src</span>="https://trustlabel.store/api/embed/abc123" <span class="attr">async</span><span class="tag">&gt;&lt;/script&gt;</span></pre>
+    <p class="muted">Served cross-origin with <code style="font-family:'IBM Plex Mono',monospace">stale-while-revalidate</code>, so a CDN keeps showing the last good copy even if we go down. Every failure path returns valid JavaScript — our outage must never break a seller's page.</p>
+    <p class="faint">Cafe24 and Imweb support this. Naver Smart Store blocks external scripts outright, so those sellers get the copy-paste block instead — knowing which is which is half the product.</p>
+  </section>
+
+  <!-- 5 ─────────────────────────────────────────────────────────────────── -->
+  <section class="slide">
+    <p class="eyebrow">And then we check</p>
+    <h2>Is it actually showing?</h2>
+    <p class="muted">Paste your storefront URL. We fetch the page and look for it. Three answers, never two:</p>
+    <ol class="steps" style="margin-top:0.5rem">
+      <li><strong>Found</strong><span>The disclosure is live on your page.</span></li>
+      <li><strong>Not found</strong><span>We read your page and it is not there.</span></li>
+      <li><strong>Could not check</strong><span>We could not reach the page. That is our problem, not yours — and collapsing it into “not found” would be a false accusation.</span></li>
+    </ol>
+  </section>
+
+  <!-- 6 ─────────────────────────────────────────────────────────────────── -->
+  <section class="slide">
+    <p class="eyebrow">Built in one day</p>
+    <h2>What we kept, and what we cut.</h2>
+    <div class="ledger">
+      <div>
+        <div class="col-head">Shipped</div>
+        <ul class="kept">
+          <li>Bilingual wizard with live preview</li>
+          <li>Korean disclosure generator</li>
+          <li>Public page, QR, link preview</li>
+          <li>One-line embed for any site</li>
+          <li>Install checker</li>
+          <li>Magic-link accounts, per-row RLS</li>
+        </ul>
+      </div>
+      <div>
+        <div class="col-head">Deliberately not built</div>
+        <ul class="cut">
+          <li>Payments — pricing is unvalidated</li>
+          <li>Hash-chained audit trail</li>
+          <li>Law-firm certified wording</li>
+          <li>Scheduled monitoring and alerts</li>
+          <li>Teams and roles</li>
+        </ul>
+      </div>
+    </div>
+    <p class="faint" style="margin-top:0.5rem">The cut list is not a backlog. Each one needs something we do not have yet — a validated price, a lawyer, a customer.</p>
+  </section>
+
+  <!-- 7 ─────────────────────────────────────────────────────────────────── -->
+  <section class="slide">
+    <p class="eyebrow">The honest part</p>
+    <h2>This generates a draft, not legal advice.</h2>
+    <p class="muted">The wording is written against the regulator's published summary, and no lawyer has reviewed it. That line ships on the public page and in the footer — not buried, not in grey 10px.</p>
+    <p class="muted">A compliance product that overstates what it guarantees is the one thing worse than no compliance product. The next real step is not a feature. It is template certification by a Korean e-commerce firm, marketed as <span style="font-family:'Noto Sans KR',sans-serif">문구 검수</span>.</p>
+  </section>
+
+  <!-- 8 ─────────────────────────────────────────────────────────────────── -->
+  <section class="slide">
+    <p class="eyebrow">Close</p>
+    <h2>Ninety seconds, no lawyer, no developer.</h2>
+    <p class="lede" style="max-width:40ch">A legal obligation, turned into something a shop is willing to display.</p>
+    <div class="stats" style="margin-top:1rem">
+      <div class="stat"><span class="figure" style="color:var(--seal)">5</span><span class="cap">questions</span></div>
+      <div class="stat"><span class="figure" style="color:var(--seal)">1</span><span class="cap">line of HTML</span></div>
+      <div class="stat"><span class="figure time" id="days2">—</span><span class="cap">days left</span></div>
+    </div>
+  </section>
+
+</div>
+
+<div class="chrome">
+  <span>TrustLabel</span>
+  <div class="ticks" id="ticks"></div>
+  <span id="counter">01 / 08</span>
+</div>
+
+<script>
+  (function () {
+    var deck = document.getElementById("deck");
+    var slides = Array.prototype.slice.call(document.querySelectorAll(".slide"));
+    var ticks = document.getElementById("ticks");
+    var counter = document.getElementById("counter");
+
+    slides.forEach(function () {
+      var t = document.createElement("span");
+      t.className = "tick";
+      ticks.appendChild(t);
+    });
+    var tickEls = Array.prototype.slice.call(ticks.children);
+
+    function pad(n) { return (n < 10 ? "0" : "") + n; }
+
+    function mark(i) {
+      tickEls.forEach(function (t, j) { t.classList.toggle("on", j <= i); });
+      counter.textContent = pad(i + 1) + " / " + pad(slides.length);
+    }
+
+    /*
+      root is the deck, not the viewport — scrolling happens inside it. And the
+      trigger is the slide crossing the vertical middle rather than a visibility
+      ratio, so a slide taller than the screen still registers.
+    */
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) mark(slides.indexOf(e.target));
+      });
+    }, { root: deck, rootMargin: "-45% 0px -45% 0px", threshold: 0 });
+    slides.forEach(function (s) { io.observe(s); });
+    mark(0);
+
+    function current() {
+      var top = deck.scrollTop;
+      var best = 0, dist = Infinity;
+      slides.forEach(function (s, i) {
+        var d = Math.abs(s.offsetTop - top);
+        if (d < dist) { dist = d; best = i; }
+      });
+      return best;
+    }
+    function go(i) {
+      var n = Math.max(0, Math.min(slides.length - 1, i));
+      deck.scrollTo({ top: slides[n].offsetTop, behavior: "smooth" });
+    }
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowDown" || e.key === "ArrowRight" || e.key === "PageDown" || e.key === " ") {
+        e.preventDefault(); go(current() + 1);
+      } else if (e.key === "ArrowUp" || e.key === "ArrowLeft" || e.key === "PageUp") {
+        e.preventDefault(); go(current() - 1);
+      } else if (e.key === "Home") { e.preventDefault(); go(0); }
+      else if (e.key === "End") { e.preventDefault(); go(slides.length - 1); }
+    });
+
+    // Days to enforcement, computed rather than written down — it is wrong the
+    // moment it is hard-coded, and a stale number on slide one is a bad opening.
+    var target = Date.UTC(2026, 9, 22);
+    var today = new Date();
+    var now = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
+    var days = Math.max(0, Math.round((target - now) / 86400000));
+    document.getElementById("days").textContent = days;
+    document.getElementById("days2").textContent = days;
+  })();
+</script>

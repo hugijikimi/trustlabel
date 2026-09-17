@@ -1,26 +1,74 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  /* Ground — warm paper, not clinical white. Reads as a printed label. */
+  --color-paper:      #FAF8F4;
+  --color-card:       #FFFFFF;
+  --color-ink:        #16191D;
+  --color-ink-muted:  #5A6068;
+  --color-ink-faint:  #8C939C;
+  --color-rule:       #E8E3DA;
+  --color-rule-strong:#D6CFC2;
+
+  /* Accent — deep teal-green. Trust, without defaulting to SaaS blue. */
+  --color-seal:       #0E7C66;
+  --color-seal-tint:  #E6F2EE;
+
+  /* Deadline urgency */
+  --color-amber:      #B4690E;
+  --color-amber-tint: #FBF0DE;
+
+  /* The fine */
+  --color-brick:      #A93226;
+  --color-brick-tint: #FAEBE9;
+
+  --font-display: "Noto Serif KR", ui-serif, Georgia, serif;
+  --font-sans:    "Inter", "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
+
+  --radius-card: 14px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
+/* Tailwind v4 hoists a nested @theme out of @media — the dark values would
+   overwrite :root and light mode would never render. Override the variables
+   directly instead; values are unchanged from docs/DESIGN.md §1. */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --color-paper:      #121417;
+    --color-card:       #1A1D21;
+    --color-ink:        #EDEAE4;
+    --color-ink-muted:  #9AA1A9;
+    --color-ink-faint:  #6C737B;
+    --color-rule:       #282C31;
+    --color-rule-strong:#3A3F45;
+    --color-seal-tint:  #10302A;
+    --color-amber-tint: #2E2210;
+    --color-brick-tint: #2E1614;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Added for B5. The tokens above are verbatim from docs/DESIGN.md §1; this is
+   the motion and base-element layer the wizard needs. */
+
+@theme {
+  /* DESIGN.md §1 names these families literally ("Inter", "Noto Sans KR"), but
+     next/font generates scoped family names, so a literal name never matches.
+     Point the tokens at the variables app/layout.jsx sets. Same fonts, same order. */
+  --font-sans:    var(--font-inter), var(--font-noto-sans-kr), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-noto-serif-kr), var(--font-noto-sans-kr), ui-serif, Georgia, serif;
+
+  /* DESIGN.md §6: a disclosure line entering the preview — 250ms fade + 6px rise. */
+  --animate-line-in: line-in 250ms ease-out both;
+
+  @keyframes line-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: none; }
+  }
+}
+
+@layer base {
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+  }
 }
