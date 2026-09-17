@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import Label from "@/components/Label";
-import LangToggle from "@/components/LangToggle";
+import SiteFooter from "@/components/SiteFooter";
+import SiteHeader from "@/components/SiteHeader";
 import WaitlistForm from "@/components/WaitlistForm";
 import { generateLines } from "@/lib/generate";
 import { useLang } from "@/lib/useLang";
@@ -48,18 +49,14 @@ export default function Landing({ daysLeft, shots = {} }) {
 
   return (
     <div className="w-full">
-      <header className="mx-auto flex w-full max-w-5xl items-center justify-between px-6 py-6">
-        <span className="font-display text-[17px] font-semibold text-ink">{t("brand")}</span>
-        <div className="flex items-center gap-3">
-          <LangToggle />
-          <Link
-            href="/login"
-            className="rounded-lg border-[1.5px] border-rule-strong bg-card px-4 py-2 text-[13px] text-ink"
-          >
-            {t("nav_signin")}
-          </Link>
-        </div>
-      </header>
+      <SiteHeader>
+        <Link
+          href="/login"
+          className="rounded-lg border-[1.5px] border-rule-strong bg-card px-4 py-2 text-[13px] text-ink"
+        >
+          {t("nav_signin")}
+        </Link>
+      </SiteHeader>
 
       {/* 1 · Hero — the deadline is present in the first ten seconds. */}
       <section className="mx-auto grid w-full max-w-5xl items-center gap-12 px-6 py-12 lg:grid-cols-[1fr_1fr] lg:py-20">
@@ -142,12 +139,7 @@ export default function Landing({ daysLeft, shots = {} }) {
       </section>
 
       {/* 6 · Footer */}
-      <footer className="border-t border-rule">
-        <div className="mx-auto w-full max-w-5xl px-6 py-10">
-          <p className="text-[12px] leading-relaxed text-ink-muted">{t("disclaimer")}</p>
-          <p className="mt-3 text-[12px] text-ink-faint">{t("brand")}</p>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

@@ -1,4 +1,6 @@
 import LoginForm from "@/components/LoginForm";
+import SiteFooter from "@/components/SiteFooter";
+import SiteHeader from "@/components/SiteHeader";
 
 export const metadata = { title: "Sign in · TrustLabel" };
 
@@ -9,8 +11,12 @@ export default async function LoginPage({ searchParams }) {
   const { error } = await searchParams;   // a Promise in Next 15+
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-6 py-16">
-      <LoginForm initialError={error === "auth" ? LINK_FAILED : ""} />
-    </main>
+    <>
+      <SiteHeader />
+      <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-6 py-16">
+        <LoginForm initialError={error === "auth" ? LINK_FAILED : ""} />
+      </main>
+      <SiteFooter />
+    </>
   );
 }

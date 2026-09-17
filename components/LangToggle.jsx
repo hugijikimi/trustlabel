@@ -1,10 +1,18 @@
 "use client";
 
+import { useEffect } from "react";
 import { LANGS } from "@/lib/i18n";
 import { useLang } from "@/lib/useLang";
 
 export default function LangToggle() {
   const { lang, t, setLang } = useLang();
+
+  // Keep <html lang> honest. The server renders the default, so a visitor
+  // who chose the other language needs it corrected after hydration — this
+  // is a screen reader's cue for which language to pronounce.
+  useEffect(() => {
+    document.documentElement.lang = lang;
+  }, [lang]);
 
   return (
     <div

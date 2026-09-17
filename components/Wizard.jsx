@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import LabelPreview from "@/components/LabelPreview";
-import LangToggle from "@/components/LangToggle";
+import SiteFooter from "@/components/SiteFooter";
+import SiteHeader from "@/components/SiteHeader";
 import { publish, save } from "@/lib/disclosures";
 import { supabase } from "@/lib/supabase/client";
 import { useLang } from "@/lib/useLang";
@@ -191,12 +192,9 @@ export default function Wizard({ initial = null }) {
   }
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-6 py-10">
-      <header className="mb-10 flex items-center justify-between">
-        <span className="font-display text-[17px] font-semibold text-ink">{t("brand")}</span>
-        <LangToggle />
-      </header>
-
+    <>
+      <SiteHeader width="max-w-6xl" />
+      <main className="mx-auto w-full max-w-6xl px-6 pb-16">
       <div className="grid gap-10 lg:grid-cols-[1fr_1fr]">
         <div>
           {done ? (
@@ -406,6 +404,8 @@ export default function Wizard({ initial = null }) {
           />
         </div>
       </div>
-    </main>
+      </main>
+      <SiteFooter width="max-w-6xl" />
+    </>
   );
 }

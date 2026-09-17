@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import LangToggle from "@/components/LangToggle";
 import SignOutButton from "@/components/SignOutButton";
+import SiteFooter from "@/components/SiteFooter";
+import SiteHeader from "@/components/SiteHeader";
 import { publish, remove, unpublish } from "@/lib/disclosures";
 import { supabase } from "@/lib/supabase/client";
 import { useLang } from "@/lib/useLang";
@@ -246,15 +247,11 @@ export default function Dashboard({ rows = [], email, origin, loadError }) {
   const { t } = useLang();
 
   return (
-    <main className="mx-auto w-full max-w-5xl px-6 py-10">
-      <header className="mb-10 flex items-center justify-between">
-        <span className="font-display text-[17px] font-semibold text-ink">{t("brand")}</span>
-        <div className="flex items-center gap-3">
-          <LangToggle />
-          <SignOutButton />
-        </div>
-      </header>
-
+    <>
+      <SiteHeader>
+        <SignOutButton />
+      </SiteHeader>
+      <main className="mx-auto w-full max-w-5xl px-6 pb-16">
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-[28px] leading-tight font-semibold text-ink">
@@ -285,6 +282,8 @@ export default function Dashboard({ rows = [], email, origin, loadError }) {
           ))
         )}
       </div>
-    </main>
+      </main>
+      <SiteFooter />
+    </>
   );
 }
